@@ -148,6 +148,7 @@ func buildOpts(options ...Option) *opts {
 		isSyscallStack,
 		isStdLibStack,
 		isTraceStack,
+		isDNSResolverStack,
 	)
 	for _, option := range options {
 		option.apply(opts)
@@ -218,4 +219,11 @@ func isStdLibStack(s stack.Stack) bool {
 
 func isTraceStack(s stack.Stack) bool {
 	return s.HasFunction("runtime.ReadTrace")
+}
+
+func isDNSResolverStack(s stack.Stack) bool {
+	// net.Resolver is a public type covered by the Go 1 compatibility
+	// guarantee; matching on the receiver keeps this filter stable even
+	// if internal method names are renamed or refactored.
+	return strings.HasPrefix(s.CreatedBy(), "net.(*Resolver).")
 }
